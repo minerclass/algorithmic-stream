@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Algorithmic Stream: Media Ecology Information River</title>
+  <style>
+    :root {
+      --bg: #020606;
+      --panel: rgba(13, 27, 27, 0.8);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0fdf4;
+      --text-muted: #86efac;
+      --teal: #10b981;
+      --gold: #f59e0b;
+      --red: #ef4444;
+      --font-ui: "Segoe UI", -apple-system, sans-serif;
+      --font-serif: Georgia, serif;
+      --font-mono: Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(ellipse at 50% 120%, #064e3b 0%, #020606 100%);
+      color: var(--text);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(2, 6, 6, 0.6);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-logo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-logo h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text);
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+    }
+
+    .header-logo span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .hud-metrics {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .metric-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      min-width: 95px;
+    }
+
+    .metric-pill label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .metric-pill span {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--text);
+      font-family: var(--font-mono);
+    }
+
+    .metric-pill.highlight span {
+      color: var(--teal);
+    }
+
+    .metric-pill.warning span {
+      color: var(--gold);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 24px;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 15px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* LEFT COLUMN: SCAFFOLD CONTROLS & BIBLIOGRAPHY */
+    .scaffold-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s, border-color 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .scaffold-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--teal);
+    }
+
+    .scaffold-btn.active-tool {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--teal);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .scaffold-btn:focus-visible {
+      outline: 2px solid var(--teal);
+    }
+
+    .scaffold-btn .badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .scaffold-btn.active-tool .badge {
+      background: var(--teal);
+      color: #020606;
+    }
+
+    .bib-clipboard {
+      background: #fafafa;
+      border: 3px solid #1f2937;
+      border-radius: 8px;
+      padding: 16px;
+      color: #111827;
+      font-family: var(--font-serif);
+      margin-top: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bib-title {
+      font-size: 1.05rem;
+      font-weight: bold;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .bib-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .bib-item {
+      font-size: 0.88rem;
+      line-height: 1.4;
+      padding: 8px 10px;
+      background: #f3f4f6;
+      border-left: 3px solid #d1d5db;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: addBib 0.4s ease both;
+    }
+
+    @keyframes addBib {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .bib-item.verified {
+      border-left-color: var(--teal);
+      background: #ecfdf5;
+    }
+
+    .bib-item.fabricated {
+      border-left-color: var(--red);
+      background: #fef2f2;
+    }
+
+    .bib-status-icon {
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    /* RIGHT COLUMN: INFORMATION RIVER */
+    .stream-container {
+      background: #022c22;
+      border-radius: 8px;
+      border: 2.5px solid var(--teal);
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      min-height: 380px;
+      display: flex;
+      cursor: crosshair;
+    }
+
+    .stream-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .stream-overlay-banner {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(2, 6, 6, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* DEBRIEF SCREEN */
+    .debrief-main {
+      display: none;
+      flex-direction: column;
+      gap: 25px;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      animation: fadeParagraph 0.8s ease both;
+    }
+
+    @keyframes fadeParagraph {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .debrief-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .debrief-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .debrief-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .debrief-card h4 {
+      font-size: 1rem;
+      color: var(--teal);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .debrief-card p {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* DIALOG OVERLAY */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .dialog-card {
+      background: #0d1b1b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      max-width: 520px;
+      width: 90%;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .dialog-header h3 {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .dialog-body {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+
+    .dialog-body p {
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      background: var(--teal);
+      color: #020606;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .btn:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 20px;
+      text-align: center;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: rgba(2, 6, 6, 0.4);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-logo">
+      <h1>The Algorithmic Stream</h1>
+      <span>Media Ecology Information River &middot; Bibliography Audit</span>
+    </div>
+    <div class="hud-metrics">
+      <div class="metric-pill" id="timePill">
+        <label>Time Penalty</label>
+        <span id="timeVal">0.0s</span>
+      </div>
+      <div class="metric-pill highlight" id="collectedPill">
+        <label>Collected</label>
+        <span id="collectedVal">0 / 5</span>
+      </div>
+      <div class="metric-pill warning" id="challengePill">
+        <label>Friction (Challenge)</label>
+        <span id="challengeVal">30%</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="gameMain">
+    <!-- LEFT PANEL: CONTROLS & BIBLIOGRAPHY -->
+    <section class="card" aria-label="Controls and bibliography list">
+      <div class="card-title">Scaffolding Scanners</div>
+      
+      <button type="button" class="scaffold-btn" id="btnDam" onclick="toggleDam()">
+        <span>🛑 Deploy Friction Dam</span>
+        <span class="badge" id="damStatus">OFF</span>
+      </button>
+      <button type="button" class="scaffold-btn" id="btnLens" onclick="toggleLens()">
+        <span>🔍 Activate Corroboration Lens</span>
+        <span class="badge" id="lensStatus">OFF</span>
+      </button>
+      <button type="button" class="scaffold-btn" id="btnAutopilot" onclick="toggleAutopilot()">
+        <span>🤖 AI Autopilot Bypass Filter</span>
+        <span class="badge" id="autopilotStatus">OFF</span>
+      </button>
+
+      <div class="bib-clipboard">
+        <div class="bib-title">Bibliography: Verification Logs</div>
+        <div class="bib-list" id="bibList">
+          <div style="color: #6b7280; font-style: italic; text-align: center; margin-top: 40px;" id="emptyBibText">
+            No citations collected yet. Select floating blocks in the river to add them.
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" style="margin-top: 15px; width:100%; padding: 14px;" id="btnAudit" onclick="runBibliographyAudit()" disabled>
+        Run Source Audit &rarr;
+      </button>
+    </section>
+
+    <!-- RIGHT PANEL: FLOWING RIVER -->
+    <section class="card" style="padding: 0; min-height: 480px;" aria-label="Flowing information river">
+      <div class="stream-overlay-banner" id="streamStatus">Current: Normal Flow Rate</div>
+      <div class="stream-container" id="streamContainer">
+        <canvas class="stream-canvas" id="streamCanvas"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- DEBRIEF SCREEN -->
+  <main class="debrief-main" id="debriefMain">
+    <div class="card" style="padding: 30px;">
+      <div class="card-title">
+        <span>Bibliography Audit Report</span>
+        <span style="font-family: var(--font-mono); font-size: 0.8rem;" id="debriefScore">Verified: 0/5</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h2 style="font-size: 1.8rem; font-weight: bold; font-family: var(--font-serif);" id="debriefTitle">Report Title</h2>
+        <p id="debriefSummary" style="font-size: 1rem; line-height: 1.6; color: var(--text-muted);">
+          Assessment report text...
+        </p>
+
+        <div class="debrief-grid">
+          <div class="debrief-card">
+            <h4>Calibrations Met</h4>
+            <p><strong>Citations Verified:</strong> <span id="finalVerified"></span> / 5</p>
+            <p><strong>Time Penalty:</strong> <span id="finalTime"></span>s</p>
+            <p><strong>Calibration Friction:</strong> <span id="finalFriction"></span>%</p>
+          </div>
+          <div class="debrief-card">
+            <h4>Bibliography Verification details</h4>
+            <p id="finalReportDetails">Details...</p>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 15px; display: flex; gap: 15px;">
+          <button class="btn" onclick="location.reload()">Reset River</button>
+          <button class="btn ghost" onclick="printReport()">Print Audit Summary</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DIALOG OVERLAY -->
+  <div class="overlay" id="dialogOverlay" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog-card">
+      <div class="dialog-header">
+        <div class="dialog-avatar" id="dialogAvatar">📜</div>
+        <h3 id="dialogTitle">Evaluation Warning</h3>
+      </div>
+      <div class="dialog-body" id="dialogBody">
+        Warning details...
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" id="dialogBtn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Micah J. Miner. Extended from the *Pedagogical Friction* Dissertation Framework.</p>
+    <p style="margin-top: 5px; opacity: 0.7;">*Note: All scores, stats, and achievements are illustrative models of the pedagogical friction framework, not validated learning assessment instruments.</p>
+  </footer>
+
+  <script>
+    // Constants
+    const PRODUCTIVE_CHALLENGE = [55, 80];
+    const BARRIER_ACCESSIBLE_MAX = 20;
+
+    // Epoch source block pool definitions
+    const sourcePool = [
+      { epoch: "Orality", text: "Voice: Saima's oral warnings on flooding", auth: true, citation: "Saima of Miller's Crossing (1865)", color: "#b45309" },
+      { epoch: "Orality", text: "Voice: Local firelight council retellings", auth: true, citation: "Council Oral Tradition (1867)", color: "#b45309" },
+      { epoch: "Literacy", text: "Stone: Congressional Reconstruction Records", auth: true, citation: "Congressional Record, 39th Cong. (1866)", color: "#64748b" },
+      { epoch: "Literacy", text: "Stone: Freedman's Bureau education reports", auth: true, citation: "Freedman's Bureau Archive (1868)", color: "#64748b" },
+      { epoch: "Broadcast", text: "Neon: Radio Broadcast, President's speech", auth: true, citation: "Radio Broadcast Archives (1933)", color: "#06b6d4" },
+      { epoch: "Broadcast", text: "Neon: TV News segment, Civil Rights Act", auth: true, citation: "CBS News Television broadcast (1964)", color: "#06b6d4" },
+      { epoch: "Algorithmic", text: "Gear: Personalized Facebook feed post", auth: true, citation: "Public Feed Post (2018)", color: "#f97316" },
+      { epoch: "Algorithmic", text: "Gear: Hallucinated feed consensus brief", auth: false, citation: "Fabricated Feed Digest (2025)", color: "#f97316" },
+      { epoch: "Phantom", text: "Phantom: Generative AI essay transitional text", auth: true, citation: "Authenticated LLM Transcript (2026)", color: "#d8b4fe" },
+      { epoch: "Phantom", text: "Phantom: Fabricated primary veto citation", auth: false, citation: "Hallucinated Johnson Veto (Generative AI, 2026)", color: "#d8b4fe" }
+    ];
+
+    // Game state
+    const state = {
+      time: 0,
+      collected: 0,
+      challenge: 30,
+      damActive: false,
+      lensActive: false,
+      autopilotActive: false,
+      bibliography: [],
+      blocks: [],
+      canvas: null,
+      ctx: null,
+      mousePos: { x: 0, y: 0 }
+    };
+
+    // Initialize
+    function init() {
+      state.canvas = document.getElementById("streamCanvas");
+      state.ctx = state.canvas.getContext("2d");
+      
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+      
+      // Canvas interaction
+      state.canvas.addEventListener("click", handleCanvasClick);
+      state.canvas.addEventListener("mousemove", (e) => {
+        const rect = state.canvas.getBoundingClientRect();
+        state.mousePos.x = e.clientX - rect.left;
+        state.mousePos.y = e.clientY - rect.top;
+      });
+
+      // Spawn initial blocks
+      for (let i = 0; i < 6; i++) {
+        spawnBlock(Math.random() * state.canvas.width);
+      }
+
+      // Interval timers
+      setInterval(updateInterval, 100);
+      
+      // Run render loop
+      requestAnimationFrame(renderLoop);
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById("streamContainer");
+      state.canvas.width = container.clientWidth;
+      state.canvas.height = container.clientHeight;
+    }
+
+    function spawnBlock(xOverride) {
+      const source = sourcePool[Math.floor(Math.random() * sourcePool.length)];
+      const lanes = [60, 160, 260];
+      const y = lanes[Math.floor(Math.random() * lanes.length)];
+      
+      state.blocks.push({
+        x: xOverride !== undefined ? xOverride : state.canvas.width + 100,
+        y: y,
+        width: 150,
+        height: 60,
+        speed: (source.epoch === "Orality" ? 1 : source.epoch === "Literacy" ? 1.5 : source.epoch === "Broadcast" ? 2.5 : source.epoch === "Algorithmic" ? 3.5 : 4.5),
+        source: source,
+        hovered: false
+      });
+    }
+
+    // Game variables loop
+    function updateInterval() {
+      if (state.collected >= 5) return;
+
+      // Friction adjustments
+      if (state.damActive) {
+        state.time += 0.15; // Dam time penalty
+        state.challenge = Math.min(100, state.challenge + 1.2);
+      }
+      if (state.lensActive) {
+        state.time += 0.1; // Lens time penalty
+        state.challenge = Math.min(100, state.challenge + 0.8);
+      }
+      if (state.autopilotActive) {
+        state.challenge = Math.max(10, state.challenge - 1.5);
+      }
+      
+      updateHUD();
+    }
+
+    function updateHUD() {
+      document.getElementById("timeVal").textContent = `${state.time.toFixed(1)}s`;
+      document.getElementById("collectedVal").textContent = `${state.collected} / 5`;
+      document.getElementById("challengeVal").textContent = `${Math.round(state.challenge)}%`;
+
+      const auditBtn = document.getElementById("btnAudit");
+      auditBtn.disabled = state.collected < 5;
+    }
+
+    // Toggle Dam
+    function toggleDam() {
+      state.damActive = !state.damActive;
+      const btn = document.getElementById("btnDam");
+      const status = document.getElementById("damStatus");
+      const banner = document.getElementById("streamStatus");
+      
+      if (state.damActive) {
+        btn.classList.add("active-tool");
+        status.textContent = "ON";
+        banner.textContent = "Friction Dam Active: Stream Speed Reduced 60%";
+      } else {
+        btn.classList.remove("active-tool");
+        status.textContent = "OFF";
+        banner.textContent = "Current: Normal Flow Rate";
+      }
+    }
+
+    // Toggle Lens
+    function toggleLens() {
+      state.lensActive = !state.lensActive;
+      const btn = document.getElementById("btnLens");
+      const status = document.getElementById("lensStatus");
+      
+      if (state.lensActive) {
+        btn.classList.add("active-tool");
+        status.textContent = "ON";
+      } else {
+        btn.classList.remove("active-tool");
+        status.textContent = "OFF";
+      }
+    }
+
+    // Toggle Autopilot
+    function toggleAutopilot() {
+      state.autopilotActive = !state.autopilotActive;
+      const btn = document.getElementById("btnAutopilot");
+      const status = document.getElementById("autopilotStatus");
+      
+      if (state.autopilotActive) {
+        btn.classList.add("active-tool");
+        status.textContent = "ON";
+      } else {
+        btn.classList.remove("active-tool");
+        status.textContent = "OFF";
+      }
+    }
+
+    // Render loop
+    function renderLoop() {
+      const ctx = state.ctx;
+      const canvas = state.canvas;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw lanes
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.15)";
+      ctx.lineWidth = 4;
+      [120, 220].forEach(y => {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      });
+
+      // Update & Draw blocks
+      state.blocks.forEach((block, index) => {
+        // Apply dam speed factor
+        const speedFactor = state.damActive ? 0.35 : 1.0;
+        block.x -= block.speed * speedFactor;
+        
+        // Autopilot pick check
+        if (state.autopilotActive && block.x < 150 && state.collected < 5) {
+          collectBlock(block);
+          state.blocks.splice(index, 1);
+          spawnBlock();
+          return;
+        }
+
+        // Recycle blocks
+        if (block.x < -160) {
+          state.blocks.splice(index, 1);
+          spawnBlock();
+          return;
+        }
+
+        // Draw block rectangle
+        ctx.fillStyle = block.source.color;
+        ctx.fillRect(block.x, block.y, block.width, block.height);
+        
+        // Glowing outline for hovered block
+        const dist = Math.hypot(state.mousePos.x - (block.x + block.width/2), state.mousePos.y - (block.y + block.height/2));
+        if (dist < 80) {
+          ctx.strokeStyle = "var(--teal)";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(block.x, block.y, block.width, block.height);
+        }
+
+        // Text title
+        ctx.fillStyle = "#fff";
+        ctx.font = "10px ui-monospace, monospace";
+        ctx.fillText(block.source.epoch.toUpperCase(), block.x + 8, block.y + 18);
+        ctx.font = "10.5px Georgia, serif";
+        ctx.fillText(block.source.text.substring(0, 18) + "...", block.x + 8, block.y + 38);
+
+        // Draw Lens Magnifier if Lens is active and mouse is close
+        if (state.lensActive && dist < 100) {
+          ctx.beginPath();
+          ctx.arc(state.mousePos.x, state.mousePos.y, 45, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(3, 7, 18, 0.9)";
+          ctx.strokeStyle = "var(--gold)";
+          ctx.lineWidth = 2.5;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#fff";
+          ctx.font = "9px ui-monospace, monospace";
+          ctx.textAlign = "center";
+          
+          if (block.source.auth) {
+            ctx.fillStyle = "var(--teal)";
+            ctx.fillText("AUTHENTIC", state.mousePos.x, state.mousePos.y - 12);
+          } else {
+            ctx.fillStyle = "var(--red)";
+            ctx.fillText("FABRICATED", state.mousePos.x, state.mousePos.y - 12);
+          }
+          
+          ctx.fillStyle = "#a1a1aa";
+          ctx.font = "8px sans-serif";
+          ctx.fillText(block.source.epoch, state.mousePos.x, state.mousePos.y + 10);
+          ctx.fillText(block.source.citation.substring(0, 11) + "..", state.mousePos.x, state.mousePos.y + 24);
+          ctx.textAlign = "left"; // reset
+        }
+      });
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Handle clicks inside canvas
+    function handleCanvasClick(e) {
+      if (state.collected >= 5) return;
+
+      const rect = state.canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      state.blocks.forEach((block, index) => {
+        if (clickX >= block.x && clickX <= block.x + block.width &&
+            clickY >= block.y && clickY <= block.y + block.height) {
+          
+          // Click impact
+          collectBlock(block);
+          state.blocks.splice(index, 1);
+          spawnBlock();
+        }
+      });
+    }
+
+    function collectBlock(block) {
+      if (state.collected >= 5) return;
+
+      // Add to bibliography
+      state.bibliography.push(block.source);
+      state.collected++;
+      updateHUD();
+      renderBibliographyList();
+    }
+
+    function renderBibliographyList() {
+      const list = document.getElementById("bibList");
+      
+      if (state.collected === 1) {
+        list.innerHTML = ""; // Clear empty state
+      }
+
+      const item = state.bibliography[state.collected - 1];
+      const el = document.createElement("div");
+      el.className = "bib-item";
+      el.innerHTML = `
+        <span>[${item.epoch}] <i>${item.citation}</i></span>
+        <span class="bib-status-icon">Pending Audit</span>
+      `;
+      list.appendChild(el);
+    }
+
+    // Bibliography audit
+    function runBibliographyAudit() {
+      // Evaluate all collected citations
+      const list = document.getElementById("bibList");
+      const items = list.querySelectorAll(".bib-item");
+      
+      let verifiedCount = 0;
+      
+      state.bibliography.forEach((source, index) => {
+        const el = items[index];
+        el.classList.remove("verified", "fabricated");
+        
+        if (source.auth) {
+          el.classList.add("verified");
+          el.querySelector(".bib-status-icon").textContent = "✓ Verified";
+          el.querySelector(".bib-status-icon").style.color = "var(--teal)";
+          verifiedCount++;
+        } else {
+          el.classList.add("fabricated");
+          el.querySelector(".bib-status-icon").textContent = "✗ Fabricated";
+          el.querySelector(".bib-status-icon").style.color = "var(--red)";
+        }
+      });
+
+      setTimeout(() => {
+        const passed = verifiedCount >= 4; // Max 1 fabricated citation allowed
+        showDialogOverlay(
+          passed ? "🏆" : "💥",
+          passed ? "Bibliography Authenticated" : "Academic Integrity Rejection",
+          passed
+            ? `<p><strong>Source Audit Passed!</strong></p><p>Your bibliography of 5 sources contains ${verifiedCount} authenticated citations. The research foundations are solid.</p>`
+            : `<p><strong>Source Audit Failed!</strong></p><p>Academic integrity audit rejected. Your bibliography contains too many fabricated GenAI (Phantom) or unverified Algorithmic sources. The paper has collapsed due to hallucinated citations.</p>`,
+          "View Final Report",
+          () => showDebriefScreen(passed, verifiedCount)
+        );
+      }, 1500);
+    }
+
+    function showDialogOverlay(avatar, title, bodyHTML, btnText, callback) {
+      const overlay = document.getElementById("dialogOverlay");
+      const diaAvatar = document.getElementById("dialogAvatar");
+      const diaTitle = document.getElementById("dialogTitle");
+      const diaBody = document.getElementById("dialogBody");
+      const diaBtn = document.getElementById("dialogBtn");
+      
+      diaAvatar.textContent = avatar;
+      diaTitle.textContent = title;
+      diaBody.innerHTML = bodyHTML;
+      diaBtn.textContent = btnText;
+      
+      overlay.classList.add("active");
+      
+      const newBtn = diaBtn.cloneNode(true);
+      diaBtn.parentNode.replaceChild(newBtn, diaBtn);
+      newBtn.focus();
+      
+      newBtn.addEventListener("click", () => {
+        overlay.classList.remove("active");
+        if (callback) callback();
+      });
+    }
+
+    function showDebriefScreen(passed, verifiedCount) {
+      document.getElementById("gameMain").style.display = "none";
+      document.getElementById("debriefMain").style.display = "flex";
+
+      const debriefTitle = document.getElementById("debriefTitle");
+      const debriefSummary = document.getElementById("debriefSummary");
+      const finalVerified = document.getElementById("finalVerified");
+      const finalTime = document.getElementById("finalTime");
+      const finalFriction = document.getElementById("finalFriction");
+      const finalReportDetails = document.getElementById("finalReportDetails");
+      const debriefScore = document.getElementById("debriefScore");
+
+      finalVerified.textContent = verifiedCount;
+      finalTime.textContent = state.time.toFixed(1);
+      finalFriction.textContent = Math.round(state.challenge);
+      debriefScore.textContent = `Verified: ${verifiedCount}/5`;
+
+      if (passed) {
+        debriefTitle.textContent = "Certified Calibrated Scholar";
+        debriefSummary.innerHTML = `
+          <strong>Congratulations!</strong> You successfully assembled an authenticated bibliography on media ecology. By deploying Friction Dams and examining sources through the Corroboration Lens, you calibrated the friction (Friction: ${Math.round(state.challenge)}%) inside the productive zone. You protected academic integrity under high-speed generative conditions.
+        `;
+        finalReportDetails.innerHTML = `
+          <strong>Audit: Compliant Research</strong><br>
+          Your citations are active and verified. The research paper holds academic weight.
+        `;
+      } else {
+        debriefTitle.textContent = "Academic Fabrication Failure";
+        debriefSummary.innerHTML = `
+          <strong>Your research was rejected.</strong> By using AI Autopilot bypass filters to collect sources instantly, you skipped the necessary corroboration friction. While you collected 5 sources quickly, the paper contained fabricated (hallucinated) sources.
+        `;
+        finalReportDetails.innerHTML = `
+          <strong>Audit: Unproductive Success Bypass</strong><br>
+          This outcome shows the danger of <strong>frictionless information retrieval</strong>: fast collection creates hollow research if the student doesn't verify historical origins.
+        `;
+      }
+    }
+
+    function printReport() {
+      const printWindow = window.open("", "_blank");
+      
+      // Calculate verified count
+      let verifiedCount = 0;
+      state.bibliography.forEach(s => { if (s.auth) verifiedCount++; });
+
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>The Algorithmic Stream - Bibliography Audit Certificate</title>
+          <style>
+            body { font-family: Georgia, serif; line-height: 1.6; padding: 40px; color: #111; max-width: 800px; margin: auto; }
+            h1 { border-bottom: 2px solid #111; padding-bottom: 10px; }
+            .meta { background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #ddd; }
+            .footer { margin-top: 50px; font-size: 0.8rem; color: #777; text-align: center; border-top: 1px solid #ccc; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <h1>The Algorithmic Stream: Bibliography Verification</h1>
+          <p><strong>Scholar:</strong> Micah Miner / Technology Leadership Practitioner</p>
+          
+          <div class="meta">
+            <strong>Verified Sources:</strong> ${verifiedCount} / 5<br>
+            <strong>Time Scaffolding Penalty:</strong> ${state.time.toFixed(1)} seconds<br>
+            <strong>Calibration Friction (Challenge):</strong> ${Math.round(state.challenge)}%<br>
+            <strong>Audit Status:</strong> ${verifiedCount >= 4 ? "PASSED (Academic Integrity Approved)" : "FAILED (Academic Integrity Rejection)"}
+          </div>
+          
+          <h2>Bibliographic Review Assessment</h2>
+          <p>${document.getElementById("debriefSummary").innerHTML}</p>
+          
+          <div class="footer">
+            Generated on ${new Date().toLocaleDateString()} &middot; Pedagogical Friction Research Framework &middot; *Note: All scores and calibrations are illustrative models.
+          </div>
+          
+          <script>
+            window.onload = function() { window.print(); }
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
