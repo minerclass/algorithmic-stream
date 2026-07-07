@@ -11,3 +11,9 @@
   - `BARRIER_ACCESSIBLE_MAX = 20`
 - **Required Footnote**:
   - `*Note: All scores, stats, and achievements are illustrative models of the pedagogical friction framework, not validated learning assessment instruments.`
+
+## 2026-07-07: Remote Deployment & Verification
+- **GitHub Repository**: Created public repository `minerclass/algorithmic-stream`.
+- **Default Branch**: Branch `master` renamed to `main`, set as default branch on remote, and remote `master` deleted.
+- **GitHub Pages**: Enabled via REST API. Live URL: `https://minerclass.github.io/algorithmic-stream/`
+- **Verification & Cleanup Status**: Upgraded canvas interactions to use pointer events (`pointerdown`, `pointermove`, `pointerleave`) and set `touch-action: none` to support mobile/touch collection. Standardized print report footer to use full dissertation-safe disclaimer text. Verified the bibliography audit logic (`verifiedCount >= 4` threshold checked). Passed local verification.

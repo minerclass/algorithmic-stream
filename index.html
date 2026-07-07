@@ -277,6 +277,7 @@
       width: 100%;
       height: 100%;
       display: block;
+      touch-action: none;
     }
 
     .stream-overlay-banner {
@@ -588,12 +589,16 @@
       resizeCanvas();
       window.addEventListener("resize", resizeCanvas);
       
-      // Canvas interaction
-      state.canvas.addEventListener("click", handleCanvasClick);
-      state.canvas.addEventListener("mousemove", (e) => {
+      // Canvas interaction (pointer events for touch/click compatibility)
+      state.canvas.addEventListener("pointerdown", handleCanvasPointerDown);
+      state.canvas.addEventListener("pointermove", (e) => {
         const rect = state.canvas.getBoundingClientRect();
         state.mousePos.x = e.clientX - rect.left;
         state.mousePos.y = e.clientY - rect.top;
+      });
+      state.canvas.addEventListener("pointerleave", () => {
+        state.mousePos.x = -1000;
+        state.mousePos.y = -1000;
       });
 
       // Spawn initial blocks
@@ -797,8 +802,8 @@
       requestAnimationFrame(renderLoop);
     }
 
-    // Handle clicks inside canvas
-    function handleCanvasClick(e) {
+    // Handle pointer down (touch/click) inside canvas
+    function handleCanvasPointerDown(e) {
       if (state.collected >= 5) return;
 
       const rect = state.canvas.getBoundingClientRect();
@@ -809,7 +814,7 @@
         if (clickX >= block.x && clickX <= block.x + block.width &&
             clickY >= block.y && clickY <= block.y + block.height) {
           
-          // Click impact
+          // Selection impact
           collectBlock(block);
           state.blocks.splice(index, 1);
           spawnBlock();
@@ -977,7 +982,7 @@
           <p>${document.getElementById("debriefSummary").innerHTML}</p>
           
           <div class="footer">
-            Generated on ${new Date().toLocaleDateString()} &middot; Pedagogical Friction Research Framework &middot; *Note: All scores and calibrations are illustrative models.
+            Generated on ${new Date().toLocaleDateString()} &middot; Pedagogical Friction Research Framework &middot; *Note: All scores, stats, and achievements are illustrative models of the pedagogical friction framework, not validated learning assessment instruments.
           </div>
           
           <script>
