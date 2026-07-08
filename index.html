@@ -323,6 +323,26 @@
       }
     }
 
+    /* Mobile Responsive Pass at 390px */
+    @media (max-width: 480px) {
+      .stream-container {
+        min-height: 280px;
+      }
+      main {
+        padding: 8px;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+      .card {
+        padding: 12px;
+      }
+      .dialog-card {
+        width: 95%;
+        margin: 10px;
+        padding: 16px;
+      }
+    }
+
     .debrief-card {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border);
@@ -481,7 +501,7 @@
         </div>
       </div>
 
-      <button class="btn" style="margin-top: 15px; width:100%; padding: 14px;" id="btnAudit" onclick="runBibliographyAudit()" disabled>
+      <button class="btn" style="margin-top: 15px; width:100%; padding: 14px;" id="btnAudit" onclick="startAuditSequence()" disabled>
         Run Source Audit &rarr;
       </button>
     </section>
@@ -515,6 +535,7 @@
             <p><strong>Citations Verified:</strong> <span id="finalVerified"></span> / 5</p>
             <p><strong>Time Penalty:</strong> <span id="finalTime"></span>s</p>
             <p><strong>Calibration Friction:</strong> <span id="finalFriction"></span>%</p>
+            <p id="forecastResult" style="margin-top: 10px; font-weight: bold; color: var(--gold);"></p>
           </div>
           <div class="debrief-card">
             <h4>Bibliography Verification details</h4>
@@ -582,7 +603,8 @@
       blocks: [],
       canvas: null,
       ctx: null,
-      mousePos: { x: 0, y: 0 }
+      mousePos: { x: 0, y: 0 },
+      prediction: null
     };
 
     // Initialize
@@ -853,6 +875,63 @@
       list.appendChild(el);
     }
 
+    function startAuditSequence() {
+      showPredictionOverlay(runBibliographyAudit);
+    }
+
+    function showPredictionOverlay(callback) {
+      const overlay = document.getElementById("dialogOverlay");
+      const diaAvatar = document.getElementById("dialogAvatar");
+      const diaTitle = document.getElementById("dialogTitle");
+      const diaBody = document.getElementById("dialogBody");
+      const footer = document.querySelector(".dialog-footer");
+      
+      diaAvatar.textContent = "🔮";
+      diaTitle.textContent = "Forecast Authenticity";
+      
+      let html = `<p>Before the academic integrity audit runs, make your forecast. <strong>How many of your five collected sources will verify as authentic (not fabricated by GenAI)?</strong> (Select 0 to 5):</p>`;
+      html += `<div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px;">`;
+      for (let i = 0; i <= 5; i++) {
+        html += `<button class="btn forecast-btn" data-forecast="${i}" style="min-width: 40px; padding: 10px;">${i}</button>`;
+      }
+      html += `</div>`;
+      html += `<p style="font-size: 0.8rem; color: var(--gold); text-align: center; margin-top: 10px;">You can also press keys 0 to 5 on your keyboard.</p>`;
+      
+      diaBody.innerHTML = html;
+      footer.innerHTML = ""; // clear standard button
+      
+      overlay.classList.add("active");
+      
+      // Wire up buttons
+      const buttons = diaBody.querySelectorAll(".forecast-btn");
+      buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const val = parseInt(btn.dataset.forecast, 10);
+          selectForecast(val);
+        });
+      });
+      
+      // Keyboard handler
+      function handleKey(e) {
+        if (e.key >= "0" && e.key <= "5") {
+          const val = parseInt(e.key, 10);
+          selectForecast(val);
+        }
+      }
+      document.addEventListener("keydown", handleKey);
+      
+      function selectForecast(val) {
+        state.prediction = val;
+        document.removeEventListener("keydown", handleKey);
+        overlay.classList.remove("active");
+        
+        // Restore standard footer button for future dialogs
+        footer.innerHTML = `<button class="btn" id="dialogBtn">Continue</button>`;
+        
+        callback();
+      }
+    }
+
     // Bibliography audit
     function runBibliographyAudit() {
       // Evaluate all collected citations
@@ -931,6 +1010,20 @@
       finalTime.textContent = state.time.toFixed(1);
       finalFriction.textContent = Math.round(state.challenge);
       debriefScore.textContent = `Verified: ${verifiedCount}/5`;
+
+      const frEl = document.getElementById("forecastResult");
+      if (state.prediction !== undefined && state.prediction !== null) {
+        const hit = state.prediction === verifiedCount;
+        if (hit) {
+          frEl.innerHTML = `<strong>Forecast:</strong> Called it - ${verifiedCount} verified. Your read of the stream matched the audit.`;
+          frEl.style.color = "var(--teal)";
+        } else {
+          frEl.innerHTML = `<strong>Forecast:</strong> You predicted ${state.prediction}; ${verifiedCount} verified. Misreading generative citation fidelity poses academic integrity risks.`;
+          frEl.style.color = "var(--red)";
+        }
+      } else {
+        frEl.innerHTML = "";
+      }
 
       if (passed) {
         debriefTitle.textContent = "Certified Calibrated Scholar";

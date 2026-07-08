@@ -18,3 +18,9 @@
 - **GitHub Pages**: Enabled via REST API. Live URL: `https://minerclass.github.io/algorithmic-stream/`
 - **Verification & Cleanup Status**: Upgraded canvas interactions to use pointer events (`pointerdown`, `pointermove`, `pointerleave`) and set `touch-action: none` to support mobile/touch collection. Standardized print report footer to use full dissertation-safe disclaimer text. Verified the bibliography audit logic (`verifiedCount >= 4` threshold checked). Passed local verification.
 ── QA fixes (2026-07-08): see commit log for the Phase 2 QA-pass fixes; full defect analysis in the session review.
+
+## 2026-07-08: Phase 3 Upgrades
+- Added prediction beat before the academic integrity audit runs, asking players how many of the 5 collected sources will verify as authentic.
+- Map keys 0–5 for keyboard prediction, and added forecastResult feedback on the final debrief screen.
+- Implemented mobile media queries for viewport widths under 480px (scaling down the stream container and main layout padding).
+- Verified playthrough and replay with zero console errors.
