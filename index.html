@@ -425,6 +425,10 @@
       background: rgba(2, 6, 6, 0.4);
       margin-top: auto;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
