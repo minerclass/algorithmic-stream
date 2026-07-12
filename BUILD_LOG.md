@@ -24,3 +24,10 @@
 - Map keys 0–5 for keyboard prediction, and added forecastResult feedback on the final debrief screen.
 - Implemented mobile media queries for viewport widths under 480px (scaling down the stream container and main layout padding).
 - Verified playthrough and replay with zero console errors.
+
+## 2026-07-12: Dissertation Bridge
+
+- Added a debrief card connecting the bibliography audit to the three current research-question domains.
+- Kept the prompts game-specific and linked to the Dissertation Proposal Dashboard instead of copying full research-question wording that may change.
+- Explicitly labels the audit as a prompt for the current study rather than a finding from it.
+- Local validation confirmed one bridge, three prompts, the correct dashboard link, unique IDs, no horizontal overflow, and zero console errors.
