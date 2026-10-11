@@ -31,3 +31,9 @@
 - Kept the prompts game-specific and linked to the Dissertation Proposal Dashboard instead of copying full research-question wording that may change.
 - Explicitly labels the audit as a prompt for the current study rather than a finding from it.
 - Local validation confirmed one bridge, three prompts, the correct dashboard link, unique IDs, no horizontal overflow, and zero console errors.
+
+## 2026-10-11: Version 2
+
+- Rebuilt as a run-based game: five reaches with scenery, a dam with charge, netting, three lateral-reading moves per source, autopilot, forecast, flip reveal, rank and pattern readout.
+- Classic version moved to `classic/`. Source bank split into `sources.js` with `sources.test.cjs`.
+- README rewritten. Agent log entry records what was verified and what was not.

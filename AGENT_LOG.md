@@ -6,6 +6,38 @@ or tokens.
 
 ---
 
+## 2026-10-11 - Version 2: a run-based river game with lateral-reading moves
+
+Rebuilt the game so it plays like a game rather than a toggle panel. The 2026 version is
+kept unchanged at `classic/index.html` so older links and hub cards keep working.
+
+**What changed.** Title screen with the research question and a tutorial. A canvas river
+with five reaches (Voice, Ink, Signal, Feed, Phantom): per-reach bank scenery, sky and
+water palettes that cross-fade, reflections of bank lights, wave crests, foam, a hold-to-raise
+dam with a draining charge, and floating source cards drawn as era-specific glyphs. Netting
+sends a card flying into the dock. Each docked source offers three lateral-reading moves
+(who, evidence, others) that reveal clues; the corroboration lens, which revealed the verdict
+on hover, is gone. An autopilot offer fills the bibliography with the most prominent sources.
+A forecast beat, a one-at-a-time flip reveal, a rank and score, a pattern readout, and a
+verdict for every citation and every source let go.
+
+**Source bank.** `sources.js` holds fourteen illustrative sources set in the invented town of
+Miller's Crossing: eight hold, six fail. Two of the sources that hold live in the Feed and
+Phantom reaches, so machine-touched is never equated with fabricated. The title screen,
+footer, and README all state that the sources are invented and cannot be cited.
+
+**Verified.** Timed and untimed runs, keyboard-only play, dam hold and exhaustion, autopilot,
+forecast, reveal, debrief, pause and resume, reduced motion, and the phone layout (no
+horizontal overflow at 375px) were played through in the desktop app's browser pane with
+zero console errors. Node was not on this computer, so `node --check` and the new
+`sources.test.cjs` were not run here; the source bank was validated in the browser instead
+(unique ids, known reaches, three moves and a verdict each).
+
+**Not done here.** The games hub card still describes the corroboration lens; it needs a
+one-line update in `minerclass/games-hub`. Screen-reader output is unverified.
+
+---
+
 ## 2026-09-01 - Adopt the shared ink; stream gradient kept
 
 Links the shared token file and points the primary text colour at the shared ink with a
