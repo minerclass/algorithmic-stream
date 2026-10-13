@@ -4,7 +4,7 @@ A lateral-reading river game. Sources drift past on a current that speeds up thr
 
 **Live:** https://minerclass.github.io/algorithmic-stream/
 
-Part of the [pedagogical friction games hub](https://minerclass.github.io/games-hub/). Pairs with [Keeper of the Word](https://minerclass.github.io/orality_game/) and [Echoes](https://minerclass.github.io/echoes/), which walk the same five environments.
+Part of the [pedagogical friction games hub](https://minerclass.github.io/games-hub/), alongside [Keeper of the Word](https://minerclass.github.io/orality_game/) and [Echoes](https://minerclass.github.io/echoes/).
 
 ## The run
 
@@ -21,6 +21,8 @@ The research question is fixed: *What happened on the night the levee broke at M
 
 The river moves from Voice (primary orality) through Ink (literacy) and Signal (secondary orality) to Feed (algorithmic secondary orality) and Phantom (tertiary algorithmicity). Each reach changes the bank scenery, the water, the speed of the current, and the mix of sources that spawn. In a timed run the reaches advance as the deadline is spent, so reading moves the river on. In an untimed run they advance every two decisions.
 
+**Conceptual grounding.** Primary orality, literacy, and secondary orality are Walter J. Ong's terms; see *Orality and Literacy: The Technologizing of the Word* (Methuen, 1982). Algorithmic secondary orality, tertiary algorithmicity, and pedagogical friction are Micah Miner's proposals and are presented here as proposals, not as established terms in the field. The reach taglines in the game are the game's own paraphrases, not quotations.
+
 The distinction the last two reaches turn on is what becomes algorithmic. In Feed the contributions are still human and the system decides whose circulate. In Phantom the system produces the words as well as ranking them. Both reaches contain sources that hold: a library account pointing at its own scan, and an archive's machine-assisted transcript with a named reviewer and a link to the audio. Machine-touched is not the same as fabricated. What matters is whether the path back to the original exists and whether a person stands behind it.
 
 ### Modes and parameters
@@ -28,6 +30,10 @@ The distinction the last two reaches turn on is what becomes algorithmic. In Fee
 - **Begin the run** starts a five-minute timed run. **Untimed run** has no clock and no move cost.
 - `?start=timed` or `?start=untimed` skips the title screen.
 - `?motion=reduce` forces reduced motion. The title screen also cycles between system, reduce, and full. The choice is kept in browser-local storage and nowhere else.
+
+### Dissertation bridge
+
+The debrief ends with three reflection prompts and a link to the current research questions. The prompts are the game's, not the study's research questions, and the game reports no findings from the study.
 
 ### Ranks
 

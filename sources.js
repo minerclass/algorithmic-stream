@@ -220,10 +220,10 @@ const STREAM_SOURCES = [
     holds: false,
     checks: {
       who: { text: "No photographer is named. The file's metadata records an image-generation tool and a prompt.", tell: true },
-      evidence: { text: "Night photography of fast-moving water was not possible in 1871. The lantern in the frame casts two shadows.", tell: true },
+      evidence: { text: "Cameras of the 1870s needed long exposures and good light. A sharp night photograph of rushing water is not something they could make. The lantern in the frame casts two shadows.", tell: true },
       others: { text: "The archive holds no photographs of the flood. The first photograph of the levee in its collection is from 1888.", tell: true }
     },
-    verdict: "Fails as cited. A generated image presented as a record. The technology of 1871 could not have made it, and the archive has never held it."
+    verdict: "Fails as cited. A generated image presented as a record. Cameras of the period could not have made it, and the archive has never held it."
   }
 ];
 
