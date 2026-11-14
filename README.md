@@ -10,11 +10,11 @@ Part of the [pedagogical friction games hub](https://minerclass.github.io/games-
 
 The research question is fixed: *What happened on the night the levee broke at Miller's Crossing in March 1871, and how do we know?* Miller's Crossing is invented. Every source in the river is an illustrative composite. None of them can be cited for real, and the game says so on the title screen and in the footer. The lateral-reading moves are the real part.
 
-1. **Net.** Click a card in the river, or choose it from the list under the water. The dock holds four at a time.
+1. **Net.** Click a card in the river, or choose it from the list under the water. The dock holds four at a time. A source that drifts off screen comes round once more, then the current keeps it; the debrief lists what was swept past. If the river runs dry before five are cited, the audit runs on what you have.
 2. **Read laterally.** Each docked source offers three moves: *Who is behind it?*, *What is the evidence?*, and *What do other sources say?* Each reveals a clue. Clues marked in gold point somewhere. In a timed run, each move costs twelve seconds of the deadline.
 3. **Decide.** Cite it or let it go. Five citations fill the bibliography.
 4. **Raise the dam.** Hold the dam button or the space bar to slow the current while you read. The dam drains while held and refills while released.
-5. **Resist the autopilot.** A shimmering button offers to fill the bibliography instantly with the most prominent sources in the current. It is allowed. It prefers what is loud and late.
+5. **Resist the autopilot.** A shimmering button offers to fill the bibliography instantly with the most prominent sources in the current. It is allowed. It prefers what is loud and late, and it never checks whether a source holds.
 6. **Forecast, then audit.** Before the audit, call how many citations will hold. The bibliography flips one entry at a time. The debrief gives a rank, a score, a pattern readout, and a verdict for every citation and every source let go.
 
 ### Five reaches

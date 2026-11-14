@@ -15,6 +15,7 @@
   const DAM_SLOW = 0.3;         // river speed factor while the dam is up
   const BASE_SPEED = 42;        // px per second at reach speed 1 on a 900px-wide river
   const MAX_FLOATERS = 5;
+  const PASS_LIMIT = 2;         // a source drifts past this many times, then the current keeps it
   const DECISIONS_PER_REACH = 2; // untimed runs advance by decisions instead of time
 
   const MOVES = [
@@ -243,7 +244,7 @@
         f.lift += ((isHover ? 1 : 0) - f.lift) * Math.min(1, dt * 10);
       }
       const gone = this.floaters.filter(f => f.x < -this.cardW - 20);
-      for (const g of gone) this.remove(g);
+      for (const g of gone) { this.remove(g); if (this.onDrift) this.onDrift(g.src); }
 
       // Hover
       this.hover = this.hitTest(this.pointer.x, this.pointer.y);
@@ -593,6 +594,9 @@
     letGo: [],          // { src, moves }
     seen: new Set(),    // ids that have floated
     decided: new Set(), // ids cited or let go
+    passes: new Map(),  // id -> times it drifted past without being netted
+    lost: [],           // sources the current carried off for good
+    dry: false,         // nothing left to spawn, float, or decide
     dam: 100, damHeld: false,
     moves: 0, autopilotUsed: false, prediction: null,
     river: null, titleRiver: null, started: false
@@ -644,6 +648,7 @@
     G.mode = mode;
     G.clock = RUN_SECONDS; G.elapsed = 0; G.reachIndex = 0; G.decisions = 0;
     G.dock = []; G.bib = []; G.letGo = []; G.seen = new Set(); G.decided = new Set();
+    G.passes = new Map(); G.lost = []; G.dry = false;
     G.dam = 100; G.damHeld = false; G.moves = 0; G.autopilotUsed = false; G.prediction = null;
     G.running = false; G.paused = false;
 
@@ -660,6 +665,7 @@
       G.river.onNet = (f) => netSource(f);
       G.river.onFloatersChanged = renderRiverList;
       G.river.onTick = tick;
+      G.river.onDrift = driftedPast;
     } else {
       G.river.floaters = []; G.river.particles = [];
     }
@@ -684,7 +690,7 @@
       title: "Before you wade in",
       body: `
         <ol class="tutorial-steps">
-          <li><strong>Net what drifts past.</strong> Click a card in the river, or choose it from the list below the water. Your dock holds four at a time.</li>
+          <li><strong>Net what drifts past.</strong> Click a card in the river, or choose it from the list below the water. Your dock holds four at a time. Each source passes <strong>twice</strong>, then the current keeps it.</li>
           <li><strong>Read laterally before you cite.</strong> Each docked source offers three moves. ${G.mode === "timed" ? `Each move costs <strong>${MOVE_COST} seconds</strong> of your deadline.` : "Moves are free in an untimed run."} Clues marked in gold are the ones that point somewhere.</li>
           <li><strong>Cite five.</strong> Then submit for the audit. Fabrications, rumors, and dramatizations will fail. Oral memory, scans, and machine-assisted transcripts may hold, if the path back to the original exists.</li>
         </ol>
@@ -723,14 +729,37 @@
     if (G.river.spawnTimer <= 0 && G.river.floaters.length < MAX_FLOATERS) {
       const src = pickSpawn();
       if (src && G.river.spawn(src)) { G.seen.add(src.id); }
+      if (!src && !G.river.floaters.length && !G.dock.length && !G.dry && G.bib.length < BIB_MAX) riverRanDry();
       G.river.spawnTimer = rand(1.4, 2.6) / Math.max(0.6, G.river.speed);
     }
+  }
+
+  // A source that leaves the screen un-netted has used one of its passes.
+  // After the last pass the current keeps it, so letting the river run costs something.
+  function driftedPast(src) {
+    if (!G.running || G.decided.has(src.id)) return;
+    const n = (G.passes.get(src.id) || 0) + 1;
+    G.passes.set(src.id, n);
+    if (n >= PASS_LIMIT) {
+      G.lost.push(src);
+      toast(`Swept downstream: ${src.title}`, true);
+      announce(`${src.title} was swept downstream and will not come back.`);
+    }
+  }
+
+  function isLost(id) { return G.lost.some(l => l.id === id); }
+
+  function riverRanDry() {
+    G.dry = true;
+    updateAudit();
+    toast("The river has run dry. Audit what you have.", true);
+    announce(`The river has run dry with ${G.bib.length} of five cited. You can run the audit on what you have.`);
   }
 
   function pickSpawn() {
     const onRiver = new Set(G.river.floaters.map(f => f.src.id));
     const inDock = new Set(G.dock.map(d => d.src.id));
-    let pool = SOURCES.filter(s => !onRiver.has(s.id) && !inDock.has(s.id) && !G.decided.has(s.id));
+    let pool = SOURCES.filter(s => !onRiver.has(s.id) && !inDock.has(s.id) && !G.decided.has(s.id) && !isLost(s.id));
     if (!pool.length) {
       // Everything has been decided or is in play: let released sources drift back round.
       pool = SOURCES.filter(s => !onRiver.has(s.id) && !inDock.has(s.id) && G.letGo.some(l => l.src.id === s.id));
@@ -740,8 +769,9 @@
     const weighted = [];
     for (const s of pool) {
       const d = Math.abs(REACHES.findIndex(r => r.id === s.reach) - ri);
-      const w = d === 0 ? 6 : d === 1 ? 3 : d === 2 ? 1 : 0.4;
-      for (let i = 0; i < Math.round(w * 2); i++) weighted.push(s);
+      let w = d === 0 ? 6 : d === 1 ? 3 : d === 2 ? 1 : 0.4;
+      if (G.passes.get(s.id)) w *= 0.5; // a source on its last pass comes round less often
+      for (let i = 0; i < Math.max(1, Math.round(w * 2)); i++) weighted.push(s);
     }
     return pick(weighted);
   }
@@ -827,8 +857,9 @@
       const li = document.createElement("li");
       const b = document.createElement("button");
       b.type = "button"; b.className = "chip";
-      b.innerHTML = `<span class="glyph" aria-hidden="true">${PALETTES[f.src.reach].glyph}</span>${esc(f.src.title)}`;
-      b.setAttribute("aria-label", `Net ${f.src.title}, ${REACHES.find(r => r.id === f.src.reach).name} reach`);
+      const last = (G.passes.get(f.src.id) || 0) >= PASS_LIMIT - 1 && !G.decided.has(f.src.id);
+      b.innerHTML = `<span class="glyph" aria-hidden="true">${PALETTES[f.src.reach].glyph}</span>${esc(f.src.title)}${last ? " <small>(last pass)</small>" : ""}`;
+      b.setAttribute("aria-label", `Net ${f.src.title}, ${REACHES.find(r => r.id === f.src.reach).name} reach${last ? ", last pass" : ""}`);
       b.addEventListener("click", () => netSource(f));
       li.appendChild(b); ul.appendChild(li);
     }
@@ -961,7 +992,7 @@
   }
 
   function updateAudit() {
-    $("btnAudit").disabled = G.bib.length < BIB_MAX;
+    $("btnAudit").disabled = G.bib.length < BIB_MAX && !G.dry;
     $("btnAutopilot").disabled = G.bib.length >= BIB_MAX;
   }
 
@@ -985,8 +1016,9 @@
     G.autopilotUsed = true;
     sound.autopilot();
     // The stream prefers what is loud and late: feed and phantom first, then whatever is floating.
+    // It ranks on prominence alone and never looks at whether a source holds.
     const taken = new Set([...G.bib.map(b => b.src.id), ...G.dock.map(d => d.src.id)]);
-    const rank = (s) => (s.reach === "feed" ? 5 : s.reach === "phantom" ? 4 : s.reach === "signal" ? 2 : 1) + (s.holds ? 0 : 1.5) + Math.random();
+    const rank = (s) => (s.reach === "feed" ? 5 : s.reach === "phantom" ? 4 : s.reach === "signal" ? 2 : 1) + Math.random();
     const candidates = SOURCES.filter(s => !taken.has(s.id)).sort((a, b) => rank(b) - rank(a));
     const need = BIB_MAX - G.bib.length;
     const chosen = candidates.slice(0, need);
@@ -1085,6 +1117,8 @@
     if (let_("phantom-transcript")) out.push("Machine-touched is not fabricated. The AI-assisted transcript had an archivist, timestamps, and the audio. You let it go.");
     if (let_("voice-hale") || let_("voice-rhyme")) out.push("Oral memory can hold when a written record corroborates it. At least one remembered source you let go would have.");
     if (cited("ink-pamphlet") && G.bib.find(b => b.src.id === "ink-pamphlet").moves > 0) out.push("You cited the sermon for what it is, a document of how people explained the flood. That is the right way to carry a biased source.");
+    const lostGood = G.lost.filter(l => l.holds).length;
+    if (lostGood) out.push(`The current took ${lostGood} ${lostGood === 1 ? "source" : "sources"} that would have held. Each source passes twice; the dam buys the time to net it.`);
     if (!out.length && s.held === BIB_MAX) out.push("No pattern to report. Every citation had a path back to something that stayed put.");
     return out.slice(0, 3);
   }
@@ -1118,10 +1152,15 @@
     if (!G.bib.length) vl.innerHTML = `<li class="verdict">Nothing was cited before the deadline.</li>`;
 
     const lg = $("letGoList"); lg.innerHTML = "";
-    $("letGoWrap").hidden = !G.letGo.length;
+    $("letGoWrap").hidden = !G.letGo.length && !G.lost.length;
     G.letGo.forEach(l => {
       const li = document.createElement("li");
       li.innerHTML = `<span class="${l.src.holds ? "miss" : "good"}">${l.src.holds ? "Would have held" : "Right call"}</span> ${esc(l.src.title)}. ${esc(l.src.verdict)}`;
+      lg.appendChild(li);
+    });
+    G.lost.forEach(src => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="${src.holds ? "miss" : "good"}">${src.holds ? "Swept past, would have held" : "Swept past, no loss"}</span> ${esc(src.title)}. ${esc(src.verdict)}`;
       lg.appendChild(li);
     });
     announce(`Audit complete. Rank: ${s.rank}. ${s.held} of ${G.bib.length} citations held.`);
